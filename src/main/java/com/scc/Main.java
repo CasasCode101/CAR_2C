@@ -6,22 +6,41 @@ import com.scc.ui.Authentication;
 
 import java.util.Scanner;
 
-
 public final class Main {
 
     private Main() {
     }
 
     public static void main(String[] args) {
+
+        // ==========================================
+        // 1. INITIALIZE DATABASE
+        // ==========================================
         DatabaseInitializer.initialize();
 
+        // ==========================================
+        // 2. CREATE SHARED RESOURCES
+        // ==========================================
         UserDao userDao = new UserDao();
-        Scanner scanner = new Scanner(System.in);
+
+        Scanner scanner =
+                new Scanner(System.in);
 
         try {
-            Authentication authentication = new Authentication(userDao, scanner);
+
+            // ==========================================
+            // 3. START AUTHENTICATION
+            // ==========================================
+            Authentication authentication =
+                    new Authentication(
+                            userDao,
+                            scanner
+                    );
+
             authentication.start();
+
         } finally {
+
             scanner.close();
         }
     }
