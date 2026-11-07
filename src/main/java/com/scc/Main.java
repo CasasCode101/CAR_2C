@@ -23,19 +23,14 @@ public final class Main {
         // ==========================================
         UserDao userDao = new UserDao();
 
-        Scanner scanner =
-                new Scanner(System.in);
+        Scanner scanner = new Scanner(System.in);
 
         try {
 
             // ==========================================
             // 3. START AUTHENTICATION
             // ==========================================
-            Authentication authentication =
-                    new Authentication(
-                            userDao,
-                            scanner
-                    );
+            Authentication authentication = new Authentication(userDao, scanner);
 
             authentication.start();
 
