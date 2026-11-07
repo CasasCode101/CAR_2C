@@ -1,5 +1,6 @@
 package com.scc.ui;
 
+import com.scc.dao.ActivityLogDao;
 import com.scc.dao.AssistanceRequestDao;
 import com.scc.Model.AssistanceRequest;
 import com.scc.Model.User;
@@ -9,8 +10,9 @@ import java.util.Scanner;
 
 public class VerifyingOfficerDashBoard {
 
-    private static final AssistanceRequestDao requestDao =
-            new AssistanceRequestDao();
+    private static final ActivityLogDao activityLogDao =
+            new ActivityLogDao();
+    private static final AssistanceRequestDao requestDao = new AssistanceRequestDao();
 
     private VerifyingOfficerDashBoard() {
     }
@@ -233,15 +235,13 @@ public class VerifyingOfficerDashBoard {
         );
 
         if (success) {
+            activityLogDao.logAction(currentUser.id(), "REQUEST_VERIFIED", requestId,
+                    "Verifying Officer verified assistance request ID " + requestId);
             System.out.println();
-            System.out.println(
-                    "Request verified successfully."
-            );
+            System.out.println("Request verified successfully.");
         } else {
             System.out.println();
-            System.out.println(
-                    "Failed to update verification."
-            );
+            System.out.println("Failed to update verification.");
         }
     }
 

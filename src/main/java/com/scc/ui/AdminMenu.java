@@ -1,6 +1,8 @@
 package com.scc.ui;
 
+import com.scc.dao.ActivityLogDao;
 import com.scc.dao.UserDao;
+import com.scc.Model.ActivityLog;
 import com.scc.Model.User;
 
 import java.util.List;
@@ -9,12 +11,18 @@ import java.util.Scanner;
 public class AdminMenu {
 
     private final UserDao userDao;
+    private final ActivityLogDao activityLogDao;
     private final Scanner scanner;
 
     public AdminMenu(UserDao userDao, Scanner scanner) {
         this.userDao = userDao;
+        this.activityLogDao = new ActivityLogDao();
         this.scanner = scanner;
     }
+
+    // =========================================
+    // ADMIN MENU
+    // =========================================
 
     public void start(User admin) {
 
@@ -25,7 +33,10 @@ public class AdminMenu {
             System.out.println("2. View Pending Registrations");
             System.out.println("3. Approve User Account");
             System.out.println("4. Update User Role and Status");
-            System.out.println("5. Logout");
+            System.out.println("5. View System Audit Logs");
+            System.out.println("6. Filter Audit Logs by User ID");
+            System.out.println("7. Clear Historical Logs");
+            System.out.println("8. Logout");
 
             int choice = readIntInput("Enter choice: ");
 
@@ -40,7 +51,7 @@ public class AdminMenu {
                     break;
 
                 case 3:
-                    approveUser();
+                    approveUser(admin);
                     break;
 
                 case 4:
@@ -48,6 +59,18 @@ public class AdminMenu {
                     break;
 
                 case 5:
+                    viewAllLogs();
+                    break;
+
+                case 6:
+                    viewLogsByUserId();
+                    break;
+
+                case 7:
+                    clearAllLogs();
+                    break;
+
+                case 8:
                     System.out.println("Admin logged out.");
                     return;
 
@@ -57,32 +80,24 @@ public class AdminMenu {
         }
     }
 
-    // ================= VIEW ALL USERS =================
+    // =========================================
+    // VIEW USERS
+    // =========================================
 
     private void viewAllUsers() {
-
-        List<User> users = userDao.getAllUsers();
-
-        displayUsers(users);
+        displayUsers(userDao.getAllUsers());
     }
-
-    // ================= VIEW PENDING USERS =================
 
     private void viewPendingUsers() {
-
-        List<User> users = userDao.getPendingUsers();
-
-        displayUsers(users);
+        displayUsers(userDao.getPendingUsers());
     }
-
-    // ================= DISPLAY USERS =================
 
     private void displayUsers(List<User> users) {
 
         System.out.println("\n========== SYSTEM USERS ==========");
 
         System.out.printf(
-                "%-5s %-15s %-22s %-12s%n",
+                "%-5s | %-15s | %-22s | %-12s%n",
                 "ID", "USERNAME", "ROLE", "STATUS"
         );
 
@@ -93,7 +108,7 @@ public class AdminMenu {
         for (User user : users) {
 
             System.out.printf(
-                    "%-5d %-15s %-22s %-12s%n",
+                    "%-5d | %-15s | %-22s | %-12s%n",
                     user.id(),
                     user.username(),
                     user.role(),
@@ -106,9 +121,11 @@ public class AdminMenu {
         }
     }
 
-    // ================= APPROVE USER =================
+    // =========================================
+    // APPROVE USER
+    // =========================================
 
-    private void approveUser() {
+    private void approveUser(User admin) {
 
         List<User> pendingUsers = userDao.getPendingUsers();
 
@@ -124,7 +141,7 @@ public class AdminMenu {
         );
 
         if (userId == 0) {
-            System.out.println("Operation cancelled.");
+            System.out.println("Approval cancelled.");
             return;
         }
 
@@ -148,13 +165,26 @@ public class AdminMenu {
         boolean approved = userDao.approveUser(userId);
 
         if (approved) {
+
+            activityLogDao.logAction(
+                    admin.id(),
+                    "USER_APPROVED",
+                    userId,
+                    "Admin [" + admin.id()
+                            + "] approved account for User ID "
+                            + userId
+            );
+
             System.out.println("User approved successfully!");
+
         } else {
             System.out.println("Failed to approve user.");
         }
     }
 
-    // ================= UPDATE USER =================
+    // =========================================
+    // UPDATE USER ROLE AND STATUS
+    // =========================================
 
     private void updateUser(User currentAdmin) {
 
@@ -169,7 +199,7 @@ public class AdminMenu {
             return;
         }
 
-        // SELF-EDIT RESTRICTION
+        // SECURITY: PREVENT ADMIN SELF-EDIT
         if (targetUserId == currentAdmin.id()) {
 
             System.out.println(
@@ -179,7 +209,6 @@ public class AdminMenu {
             return;
         }
 
-        // Check target user
         User targetUser = userDao.getUserById(targetUserId);
 
         if (targetUser == null) {
@@ -190,7 +219,6 @@ public class AdminMenu {
         System.out.println("\nSelected User:");
         System.out.println(targetUser);
 
-        // Read new role
         String newRole = readValidRole();
 
         if (newRole == null) {
@@ -198,7 +226,6 @@ public class AdminMenu {
             return;
         }
 
-        // Read new status
         String newStatus = readValidStatus();
 
         if (newStatus == null) {
@@ -225,13 +252,129 @@ public class AdminMenu {
         );
 
         if (updated) {
-            System.out.println("User role and status updated successfully!");
+
+            activityLogDao.logAction(
+                    currentAdmin.id(),
+                    "USER_UPDATED",
+                    targetUserId,
+                    "Admin [" + currentAdmin.id()
+                            + "] changed role of User "
+                            + targetUserId
+                            + " to " + newRole
+                            + " and status to " + newStatus
+            );
+
+            System.out.println(
+                    "User role and status updated successfully!"
+            );
+
         } else {
             System.out.println("Failed to update user.");
         }
     }
 
-    // ================= INTEGER VALIDATION =================
+    // =========================================
+    // VIEW ALL AUDIT LOGS
+    // =========================================
+
+    private void viewAllLogs() {
+        displayLogs(activityLogDao.getAllLogs());
+    }
+
+    // =========================================
+    // FILTER LOGS BY USER ID
+    // =========================================
+
+    private void viewLogsByUserId() {
+
+        int userId = readIntInput(
+                "Enter User ID to filter (0 to cancel): "
+        );
+
+        if (userId == 0) {
+            System.out.println("Filter cancelled.");
+            return;
+        }
+
+        displayLogs(activityLogDao.getLogsByUserId(userId));
+    }
+
+    // =========================================
+    // DISPLAY LOGS
+    // =========================================
+
+    private void displayLogs(List<ActivityLog> logs) {
+
+        System.out.println("\n========== SYSTEM AUDIT LOGS ==========");
+
+        System.out.printf(
+                "%-5s | %-8s | %-18s | %-35s | %-20s%n",
+                "ID",
+                "USER ID",
+                "ACTION",
+                "DESCRIPTION",
+                "TIMESTAMP"
+        );
+
+        System.out.println(
+                "----------------------------------------------------------------------------------------------"
+        );
+
+        for (ActivityLog log : logs) {
+
+            String description = log.description();
+
+            // Keep description inside its table column
+            if (description != null && description.length() > 35) {
+                description = description.substring(0, 32) + "...";
+            }
+
+            System.out.printf(
+                    "%-5d | %-8d | %-18s | %-35s | %-20s%n",
+                    log.logId(),
+                    log.userId(),
+                    log.actionType(),
+                    description,
+                    log.timestamp()
+            );
+        }
+
+        if (logs.isEmpty()) {
+            System.out.println("No activity logs found.");
+        }
+    }
+
+    // =========================================
+    // CLEAR HISTORICAL LOGS
+    // =========================================
+
+    private void clearAllLogs() {
+
+        System.out.println(
+                "\nWARNING: This will permanently delete all historical logs."
+        );
+
+        System.out.print("Continue? (Y/N): ");
+
+        String confirmation = scanner.nextLine().trim();
+
+        if (!confirmation.equalsIgnoreCase("Y")) {
+            System.out.println("Clear logs cancelled.");
+            return;
+        }
+
+        boolean cleared = activityLogDao.clearAllLogs();
+
+        if (cleared) {
+            System.out.println("Historical logs cleared successfully.");
+        } else {
+            System.out.println("Failed to clear logs.");
+        }
+    }
+
+    // =========================================
+    // INTEGER INPUT VALIDATION
+    // =========================================
 
     private int readIntInput(String prompt) {
 
@@ -254,7 +397,9 @@ public class AdminMenu {
         }
     }
 
-    // ================= ROLE VALIDATION =================
+    // =========================================
+    // ROLE VALIDATION
+    // =========================================
 
     private String readValidRole() {
 
@@ -292,7 +437,9 @@ public class AdminMenu {
         }
     }
 
-    // ================= STATUS VALIDATION =================
+    // =========================================
+    // STATUS VALIDATION
+    // =========================================
 
     private String readValidStatus() {
 

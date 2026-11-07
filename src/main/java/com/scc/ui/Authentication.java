@@ -201,41 +201,24 @@ public class Authentication {
             }
 
             default -> {
-                System.out.println(
-                        "Invalid role."
-                );
+                System.out.println("Invalid role.");
                 return;
             }
         }
 
         boolean registered =
-                userDao.registerUser(
-                        username,
-                        password,
-                        role
-                );
+                userDao.registerUser(username, password, role);
 
         if (registered) {
 
             System.out.println();
-            System.out.println(
-                    "Registration successful."
-            );
-
-            System.out.println(
-                    "Your account is now PENDING."
-            );
-
-            System.out.println(
-                    "An administrator must approve "
-                            + "your account before you can login."
-            );
+            System.out.println("Registration successful.");
+            System.out.println("Your account is now PENDING.");
+            System.out.println("An administrator must approve " + "your account before you can login.");
 
         } else {
 
-            System.out.println(
-                    "Registration failed."
-            );
+            System.out.println("Registration failed.");
         }
     }
 
@@ -248,37 +231,21 @@ public class Authentication {
 
             case "ADMIN" -> {
 
-                AdminMenu adminMenu =
-                        new AdminMenu(
-                                userDao,
-                                scanner
-                        );
-
+                AdminMenu adminMenu = new AdminMenu(userDao, scanner);
                 adminMenu.start(currentUser);
             }
 
             case "RECEIVING_CLERK" ->
-                    ReceivingClerkDashBoard.display(
-                            currentUser,
-                            scanner
-                    );
+                    ReceivingClerkDashBoard.display(currentUser, scanner);
 
             case "VERIFYING_OFFICER" ->
-                    VerifyingOfficerDashBoard.display(
-                            currentUser,
-                            scanner
-                    );
+                    VerifyingOfficerDashBoard.display(currentUser, scanner);
 
             case "APPROVING_OFFICER" ->
-                    ApprovingOfficerDashBoard.display(
-                            currentUser,
-                            scanner
-                    );
+                    ApprovingOfficerDashBoard.display(currentUser, scanner);
 
             default ->
-                    System.out.println(
-                            "Unknown user role."
-                    );
+                    System.out.println("Unknown user role.");
         }
     }
 }

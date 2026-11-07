@@ -1,5 +1,6 @@
 package com.scc.ui;
 
+import com.scc.dao.ActivityLogDao;
 import com.scc.dao.AssistanceRequestDao;
 import com.scc.Model.AssistanceRequest;
 import com.scc.Model.User;
@@ -9,6 +10,7 @@ import java.util.Scanner;
 
 public class ReceivingClerkDashBoard {
 
+    private static final ActivityLogDao activityLogDao = new ActivityLogDao();
     private static final AssistanceRequestDao requestDao =
             new AssistanceRequestDao();
 
@@ -43,7 +45,7 @@ public class ReceivingClerkDashBoard {
 
                 case "2" -> viewRequests();
 
-                case "3" -> updateRequest(scanner);
+                case "3" -> updateRequest(scanner, currentUser);
 
                 case "4" -> deleteRequest(scanner);
 
@@ -220,7 +222,7 @@ public class ReceivingClerkDashBoard {
     // =====================================================
     // UPDATE REQUEST
     // =====================================================
-    private static void updateRequest(Scanner scanner) {
+    private static void updateRequest(Scanner scanner, User currentUser) {
 
         System.out.println();
         System.out.println("==============================================");
@@ -320,11 +322,8 @@ public class ReceivingClerkDashBoard {
         System.out.print("New Request Description: ");
         String requestDescription = scanner.nextLine().trim();
 
-        if (requestDescription.isEmpty()) {
-            requestDescription =
-                    existing.requestDescription();
+        if (requestDescription.isEmpty()) {requestDescription = existing.requestDescription();
         }
-
         System.out.println();
         System.out.print("Confirm update? (Y/N): ");
 
@@ -336,23 +335,21 @@ public class ReceivingClerkDashBoard {
             return;
         }
 
-        boolean success = requestDao.updateRequest(
-                requestId,
-                applicantName,
-                applicantAddress,
-                contactNumber,
-                assistanceTypeId,
-                requestDescription
-        );
+        boolean success = requestDao.updateRequest(requestId, applicantName, applicantAddress,
+                contactNumber, assistanceTypeId, requestDescription);
 
         if (success) {
-            System.out.println(
-                    "Request updated successfully."
+
+            activityLogDao.logAction(
+                    currentUser.id(),
+                    "REQUEST_VERIFIED",
+                    requestId,
+                    "Verifying Officer verified assistance request ID "
+                            + requestId
             );
+            System.out.println("Request updated successfully.");
         } else {
-            System.out.println(
-                    "Failed to update request."
-            );
+            System.out.println("Failed to update request.");
         }
     }
 

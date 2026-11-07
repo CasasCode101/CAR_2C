@@ -1,14 +1,15 @@
 package com.scc.ui;
 
+import com.scc.dao.ActivityLogDao;
 import com.scc.dao.AssistanceRequestDao;
 import com.scc.Model.AssistanceRequest;
 import com.scc.Model.User;
-
 import java.util.List;
 import java.util.Scanner;
 
 public class ApprovingOfficerDashBoard {
 
+    private static final ActivityLogDao activityLogDao = new ActivityLogDao();
     private static final AssistanceRequestDao requestDao =
             new AssistanceRequestDao();
 
@@ -244,11 +245,29 @@ public class ApprovingOfficerDashBoard {
         );
 
         if (success) {
+
+            String actionType;
+
+            if (approvalStatus.equalsIgnoreCase("APPROVED")) {
+                actionType = "REQUEST_APPROVED";
+            } else {
+                actionType = "REQUEST_REJECTED";
+            }
+
+            activityLogDao.logAction(
+                    currentUser.id(),
+                    actionType,
+                    requestId,
+                    "Approving Officer marked request ID "
+                            + requestId + " as " + approvalStatus
+            );
+
             System.out.println();
             System.out.println(
                     "Request successfully marked as "
                             + approvalStatus + "."
             );
+
         } else {
             System.out.println();
             System.out.println(
