@@ -54,9 +54,7 @@ public class ApprovingOfficerDashBoard {
                 }
 
                 default ->
-                        System.out.println(
-                                "Invalid option. Please try again."
-                        );
+                        System.out.println("Invalid option. Please try again.");
             }
         }
     }
@@ -71,13 +69,9 @@ public class ApprovingOfficerDashBoard {
         System.out.println("            VERIFIED REQUESTS");
         System.out.println("==============================================");
 
-        List<AssistanceRequest> requests =
-                requestDao.getVerifiedRequests();
+        List<AssistanceRequest> requests = requestDao.getVerifiedRequests();
 
-        if (requests.isEmpty()) {
-            System.out.println(
-                    "There are no verified requests waiting for approval."
-            );
+        if (requests.isEmpty()) {System.out.println("There are no verified requests waiting for approval.");
             return;
         }
 
@@ -96,13 +90,10 @@ public class ApprovingOfficerDashBoard {
         System.out.println("         APPROVE / REJECT REQUEST");
         System.out.println("==============================================");
 
-        List<AssistanceRequest> requests =
-                requestDao.getVerifiedRequests();
+        List<AssistanceRequest> requests = requestDao.getVerifiedRequests();
 
         if (requests.isEmpty()) {
-            System.out.println(
-                    "There are no verified requests waiting for approval."
-            );
+            System.out.println("There are no verified requests waiting for approval.");
             return;
         }
 
@@ -138,47 +129,22 @@ public class ApprovingOfficerDashBoard {
         }
 
         if (selected == null) {
-            System.out.println(
-                    "Request not found in the verified requests."
-            );
+            System.out.println("Request not found in the verified requests.");
             return;
         }
 
         System.out.println();
         System.out.println("Request Details");
         System.out.println("----------------------------------------------");
-        System.out.println(
-                "Request ID        : " + selected.requestId()
-        );
-        System.out.println(
-                "Applicant Name    : " + selected.applicantName()
-        );
-        System.out.println(
-                "Applicant Address : " + selected.applicantAddress()
-        );
-        System.out.println(
-                "Contact Number    : " + selected.contactNumber()
-        );
-        System.out.println(
-                "Assistance Type ID: "
-                        + selected.assistanceTypeId()
-        );
-        System.out.println(
-                "Description       : "
-                        + selected.requestDescription()
-        );
-        System.out.println(
-                "Verification      : "
-                        + selected.verificationStatus()
-        );
-        System.out.println(
-                "Verifier Remarks  : "
-                        + selected.verificationRemarks()
-        );
-        System.out.println(
-                "Date Submitted    : "
-                        + selected.dateSubmitted()
-        );
+        System.out.println("Request ID        : " + selected.requestId());
+        System.out.println("Applicant Name    : " + selected.applicantName());
+        System.out.println("Applicant Address : " + selected.applicantAddress());
+        System.out.println("Contact Number    : " + selected.contactNumber());
+        System.out.println("Assistance Type ID: " + selected.assistanceTypeId());
+        System.out.println("Description       : " + selected.requestDescription());
+        System.out.println("Verification      : " + selected.verificationStatus());
+        System.out.println("Verifier Remarks  : " + selected.verificationRemarks());
+        System.out.println("Date Submitted    : " + selected.dateSubmitted());
         System.out.println("----------------------------------------------");
 
         System.out.println();

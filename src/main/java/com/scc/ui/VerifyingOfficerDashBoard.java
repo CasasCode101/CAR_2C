@@ -235,10 +235,21 @@ public class VerifyingOfficerDashBoard {
         );
 
         if (success) {
-            activityLogDao.logAction(currentUser.id(), "REQUEST_VERIFIED", requestId,
-                    "Verifying Officer verified assistance request ID " + requestId);
+            String actionType = verificationStatus.equalsIgnoreCase("VERIFIED")
+                    ? "REQUEST_VERIFIED"
+                    : "REQUEST_VERIFICATION_REJECTED";
+
+            activityLogDao.logAction(
+                    currentUser.id(),
+                    actionType,
+                    requestId,
+                    "Verifying Officer marked assistance request ID "
+                            + requestId + " as " + verificationStatus
+                            + ". Remarks: " + remarks
+            );
             System.out.println();
-            System.out.println("Request verified successfully.");
+            System.out.println("Request successfully marked as "
+                    + verificationStatus + ".");
         } else {
             System.out.println();
             System.out.println("Failed to update verification.");

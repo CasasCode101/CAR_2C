@@ -47,7 +47,7 @@ public class ReceivingClerkDashBoard {
 
                 case "3" -> updateRequest(scanner, currentUser);
 
-                case "4" -> deleteRequest(scanner);
+                case "4" -> deleteRequest(scanner, currentUser);
 
                 case "5" -> {
                     System.out.println("Logging out...");
@@ -101,7 +101,7 @@ public class ReceivingClerkDashBoard {
         System.out.print("Request Description: ");
         String requestDescription = scanner.nextLine().trim();
 
-        boolean success = requestDao.createRequest(
+        int requestId = requestDao.createRequest(
                 applicantName,
                 applicantAddress,
                 contactNumber,
@@ -110,9 +110,16 @@ public class ReceivingClerkDashBoard {
                 currentUser.id()
         );
 
-        if (success) {
+        if (requestId > 0) {
+            activityLogDao.logAction(
+                    currentUser.id(),
+                    "REQUEST_CREATED",
+                    requestId,
+                    "Receiving Clerk created assistance request ID "
+                            + requestId + " for applicant " + applicantName
+            );
             System.out.println();
-            System.out.println("Request created successfully.");
+            System.out.println("Request created successfully. Request ID: " + requestId);
         } else {
             System.out.println();
             System.out.println("Failed to create request.");
@@ -342,9 +349,9 @@ public class ReceivingClerkDashBoard {
 
             activityLogDao.logAction(
                     currentUser.id(),
-                    "REQUEST_VERIFIED",
+                    "REQUEST_UPDATED",
                     requestId,
-                    "Verifying Officer verified assistance request ID "
+                    "Receiving Clerk updated assistance request ID "
                             + requestId
             );
             System.out.println("Request updated successfully.");
@@ -356,7 +363,7 @@ public class ReceivingClerkDashBoard {
     // =====================================================
     // DELETE REQUEST
     // =====================================================
-    private static void deleteRequest(Scanner scanner) {
+    private static void deleteRequest(Scanner scanner, User currentUser) {
 
         System.out.println();
         System.out.println("==============================================");
@@ -417,6 +424,13 @@ public class ReceivingClerkDashBoard {
                 requestDao.deleteRequest(requestId);
 
         if (success) {
+            activityLogDao.logAction(
+                    currentUser.id(),
+                    "REQUEST_DELETED",
+                    requestId,
+                    "Receiving Clerk deleted assistance request ID "
+                            + requestId + " for applicant " + existing.applicantName()
+            );
             System.out.println(
                     "Request deleted successfully."
             );
